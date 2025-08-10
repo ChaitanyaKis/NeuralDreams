@@ -49,10 +49,12 @@ def load_user(user_id):
 from routes.auth_routes import auth_bp
 from routes.marketplace_routes import marketplace_bp
 from routes.profile_routes import profile_bp
+from routes.tag_routes import tag_bp
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(marketplace_bp, url_prefix='/marketplace')
 app.register_blueprint(profile_bp, url_prefix='/profile')
+app.register_blueprint(tag_bp, url_prefix='/tags')
 
 # Main routes
 from flask import render_template, redirect, url_for
@@ -87,8 +89,8 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 @app.context_processor
 def inject_dream_utils():
-    from dream_utils import get_category_icon
-    return dict(get_category_icon=get_category_icon)
+    from dream_utils import get_category_icon, get_user_tag_display
+    return dict(get_category_icon=get_category_icon, get_user_tag_display=get_user_tag_display)
 
 with app.app_context():
     import models

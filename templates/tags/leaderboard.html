@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Dream Tags - Neural Dreams Inc.{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="text-center mb-5 animate__animated animate__fadeInUp">
+        <h1 class="display-4 text-gradient mb-3">Dream Tags</h1>
+        <p class="lead">Discover the personalities behind our dreamers</p>
+    </div>
+
+    <!-- Tag Statistics -->
+    <div class="row mb-5">
+        {% for tag_data in leaderboard %}
+            <div class="col-lg-4 col-md-6 mb-4 animate__animated animate__fadeInUp" style="animation-delay: {{ loop.index * 0.1 }}s;">
+                <div class="card dream-card h-100">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span class="badge dream-tag {{ 'achievement-tag' if tag_data.info.type == 'achievement' else 'category-tag' }}" 
+                                  style="background: linear-gradient(45deg, {{ tag_data.info.color }}, {{ tag_data.info.color }}bb); color: white; font-size: 1.2rem; padding: 12px 20px;">
+                                {{ tag_data.info.icon }} {{ tag_data.info.name }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-muted mb-3">{{ tag_data.info.description }}</p>
+                        
+                        <h4 class="text-primary mb-3">{{ tag_data.user_count }} dreamers</h4>
+                        
+                        <!-- Sample users with this tag -->
+                        <div class="d-flex justify-content-center flex-wrap gap-2 mb-3">
+                            {% for user in tag_data.users[:3] %}
+                                <a href="{{ url_for('profile.view_profile', user_id=user.id) }}" 
+                                   class="btn btn-sm btn-outline-dream">
+                                    {{ user.username }}
+                                </a>
+                            {% endfor %}
+                            {% if tag_data.user_count > 3 %}
+                                <span class="text-muted small">+{{ tag_data.user_count - 3 }} more</span>
+                            {% endif %}
+                        </div>
+                        
+                        <a href="{{ url_for('tags.users_by_category', category=tag_data.tag) }}" 
+                           class="btn btn-dream">
+                            View All {{ tag_data.info.name }}s
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if not leaderboard %}
+        <div class="text-center py-5">
+            <div class="empty-state animate__animated animate__fadeIn">
+                <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                <h3 class="text-muted">No Tags Yet</h3>
+                <p class="text-muted">Tags will appear as users create and interact with dreams!</p>
+                <p class="text-muted small">Create dreams and purchase others' dreams to earn your tag!</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Info Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card dream-card animate__animated animate__fadeInUp">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">How Dream Tags Work</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Category Tags</h5>
+                            <p>Based on the types of dreams you create and buy:</p>
+                            <ul class="list-unstyled">
+                                <li><strong>Reality Bender</strong> - Surreal dream specialist</li>
+                                <li><strong>Nightmare Weaver</strong> - Master of scary dreams</li>
+                                <li><strong>Love Dreamer</strong> - Romantic vision creator</li>
+                                <li><strong>Dream Comedian</strong> - Brings laughter</li>
+                                <li><strong>Chaos Architect</strong> - Bizarre dream expert</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Achievement Tags</h5>
+                            <p>Earned through special accomplishments:</p>
+                            <ul class="list-unstyled">
+                                <li><strong>Dream Master</strong> - 20+ highly-rated dreams</li>
+                                <li><strong>Dream Merchant</strong> - 10,000+ points earned</li>
+                                <li><strong>Dream Collector</strong> - 50+ dreams purchased</li>
+                                <li><strong>Dream Critic</strong> - 100+ dreams rated</li>
+                                <li><strong>Versatile Visionary</strong> - Dreams in all categories</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+</style>
+{% endblock %}

@@ -141,6 +141,9 @@ def process_dream_purchase(buyer, dream):
         db.session.add(purchase)
         db.session.commit()
         
+        # Update buyer's dream tag after purchase
+        update_user_dream_tag(buyer.id)
+        
         return True, "Dream purchased successfully!"
     
     except Exception as e:
@@ -180,3 +183,20 @@ def get_user_stats(user):
     stats['average_rating_received'] = round(avg_rating, 1) if avg_rating else 0.0
     
     return stats
+
+def update_user_dream_tag(user_id):
+    """Update user's dream tag after they create or purchase dreams"""
+    try:
+        from user_tags import update_user_tag
+        update_user_tag(user_id)
+    except Exception as e:
+        current_app.logger.error(f"Error updating user tag: {e}")
+
+def get_user_tag_display(user):
+    """Get user tag information for display"""
+    try:
+        from user_tags import get_user_tag_info
+        return get_user_tag_info(user)
+    except Exception as e:
+        current_app.logger.error(f"Error getting user tag: {e}")
+        return None

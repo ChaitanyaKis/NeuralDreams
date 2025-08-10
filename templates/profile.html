@@ -16,6 +16,16 @@
                 </div>
                 <div class="col-lg-6">
                     <h1 class="profile-name text-gradient">{{ user.username }}</h1>
+                    {% set tag_info = get_user_tag_display(user) %}
+                    {% if tag_info %}
+                        <div class="mb-3">
+                            <span class="badge dream-tag {{ 'achievement-tag' if tag_info.type == 'achievement' else 'category-tag' }}" 
+                                  style="background: linear-gradient(45deg, {{ tag_info.color }}, {{ tag_info.color }}bb); color: white; font-size: 1rem; padding: 8px 16px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                                {{ tag_info.icon }} {{ tag_info.name }}
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-3" style="font-style: italic;">{{ tag_info.description }}</p>
+                    {% endif %}
                     {% if user.bio %}
                         <p class="profile-bio">{{ user.bio }}</p>
                     {% endif %}

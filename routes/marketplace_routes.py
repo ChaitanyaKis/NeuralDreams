@@ -121,6 +121,10 @@ def post_dream():
         db.session.add(dream)
         db.session.commit()
         
+        # Update user's dream tag after creating a dream
+        from dream_utils import update_user_dream_tag
+        update_user_dream_tag(current_user.id)
+        
         flash('Your dream has been shared with the world!', 'success')
         return redirect(url_for('marketplace.dream_detail', id=dream.id))
     

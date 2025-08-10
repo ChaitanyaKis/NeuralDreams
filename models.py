@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     points = db.Column(db.Integer, default=1000)  # Starting points
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     bio = db.Column(db.Text)
+    dream_tag = db.Column(db.String(50))  # User's dream specialization tag
     
     # Relationships
     dreams = db.relationship('Dream', backref='author', lazy=True, cascade='all, delete-orphan')

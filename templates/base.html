@@ -62,7 +62,7 @@
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user-astronaut"></i>
                             {{ current_user.username }}
                             <span class="badge bg-gradient-light">✨ {{ current_user.points }}</span>

@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dream.title }} - Neural Dreams Inc.{% endblock %}
+
+{% block content %}
+<div class="dream-detail-container">
+    <div class="container">
+        <div class="row">
+            <!-- Main Dream Content -->
+            <div class="col-lg-8">
+                <div class="dream-detail-card animate__animated animate__fadeInLeft">
+                    <!-- Dream Image -->
+                    {% if dream.image_filename %}
+                    <div class="dream-detail-image mb-4">
+                        <img src="{{ url_for('static', filename='uploads/' + dream.image_filename) }}" 
+                             alt="{{ dream.title }}" class="img-fluid rounded">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Dream Header -->
+                    <div class="dream-header mb-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="dream-category-large">
+                                {% if dream.category == 'surreal' %}🌀{% elif dream.category == 'funny' %}😄
+                                {% elif dream.category == 'scary' %}👻{% elif dream.category == 'romantic' %}💕
+                                {% elif dream.category == 'bizarre' %}🎭{% else %}💭{% endif %}
+                                {{ dream.category.title() }}
+                            </span>
+                            <div class="dream-actions">
+                                {% if current_user.is_authenticated and current_user.id == dream.author_id %}
+                                    <a href="{{ url_for('marketplace.edit_dream', id=dream.id) }}" 
+                                       class="btn btn-outline-primary btn-sm me-2">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form method="POST" action="{{ url_for('marketplace.delete_dream', id=dream.id) }}" 
+                                          class="d-inline" onsubmit="return confirm('Are you sure you want to delete this dream?')">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <h1 class="dream-title text-gradient">{{ dream.title }}</h1>
+                        <div class="dream-meta d-flex align-items-center">
+                            <img src="https://ui-avatars.com/api/?name={{ dream.author.username }}&background=random" 
+                                 alt="{{ dream.author.username }}" class="author-avatar me-2">
+                            <div>
+                                <strong>
+                                    <a href="{{ url_for('profile.view_profile', username=dream.author.username) }}" 
+                                       class="text-decoration-none">{{ dream.author.username }}</a>
+                                </strong>
+                                <br>
+                                <small class="text-muted">{{ dream.created_at.strftime('%B %d, %Y') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dream Description -->
+                    <div class="dream-description mb-4">
+                        <h3>Dream Vision</h3>
+                        <p class="lead">{{ dream.description | replace('\n', '<br>') | safe }}</p>
+                    </div>
+                    
+                    <!-- Ratings Section -->
+                    {% if ratings %}
+                    <div class="ratings-section">
+                        <h3>Dream Reviews</h3>
+                        {% for rating in ratings %}
+                        <div class="rating-card mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://ui-avatars.com/api/?name={{ rating.rater.username }}&background=random" 
+                                         alt="{{ rating.rater.username }}" class="rating-avatar me-2">
+                                    <div>
+                                        <strong>{{ rating.rater.username }}</strong>
+                                        <div class="rating-stars">
+                                            {% for i in range(5) %}
+                                                <i class="fas fa-star {{ 'text-warning' if i < rating.rating else 'text-muted' }}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ rating.created_at.strftime('%B %d, %Y') }}</small>
+                            </div>
+                            {% if rating.review %}
+                            <p class="rating-review mt-2 mb-0">{{ rating.review }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="dream-sidebar animate__animated animate__fadeInRight">
+                    <!-- Purchase Card -->
+                    <div class="purchase-card mb-4">
+                        <div class="purchase-price text-center mb-3">
+                            <div class="price-display">✨ {{ dream.price }} points</div>
+                        </div>
+                        
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.id == dream.author_id %}
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-info-circle"></i>
+                                    This is your dream
+                                </div>
+                            {% elif dream.is_purchased_by(current_user) %}
+                                <div class="alert alert-success text-center">
+                                    <i class="fas fa-check-circle"></i>
+                                    You own this dream
+                                </div>
+                                
+                                <!-- Rating Form -->
+                                {% if not user_rating %}
+                                <div class="rating-form mt-3">
+                                    <h5>Rate this Dream</h5>
+                                    <form method="POST" action="{{ url_for('marketplace.rate_dream', id=dream.id) }}">
+                                        {{ rating_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ rating_form.rating.label(class="form-label") }}
+                                            {{ rating_form.rating(class="form-select") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ rating_form.review.label(class="form-label") }}
+                                            {{ rating_form.review(class="form-control", rows="3", placeholder="Share your experience with this dream...") }}
+                                        </div>
+                                        <div class="d-grid">
+                                            {{ rating_form.submit(class="btn btn-dream") }}
+                                        </div>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <div class="current-rating mt-3">
+                                    <h5>Your Rating</h5>
+                                    <div class="rating-stars mb-2">
+                                        {% for i in range(5) %}
+                                            <i class="fas fa-star {{ 'text-warning' if i < user_rating else 'text-muted' }}"></i>
+                                        {% endfor %}
+                                        <span class="ms-2">{{ user_rating }}/5</span>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('marketplace.rate_dream', id=dream.id) }}">
+                                        {{ rating_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ rating_form.rating(class="form-select") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ rating_form.review(class="form-control", rows="3") }}
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-outline-dream btn-sm">
+                                                <i class="fas fa-edit"></i> Update Rating
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            {% elif can_purchase %}
+                                <form method="POST" action="{{ url_for('marketplace.buy_dream', id=dream.id) }}" 
+                                      onsubmit="return confirm('Purchase this dream for {{ dream.price }} points?')">
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-dream btn-lg">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            Purchase Dream
+                                        </button>
+                                    </div>
+                                </form>
+                                <div class="purchase-info mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle"></i>
+                                        You have ✨ {{ current_user.points }} points
+                                    </small>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning text-center">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    {{ purchase_message }}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-dream">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    Login to Purchase
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Dream Stats -->
+                    <div class="dream-stats-card mb-4">
+                        <h5>Dream Statistics</h5>
+                        <div class="stat-row">
+                            <span>Rating:</span>
+                            <span>
+                                {% if dream.average_rating > 0 %}
+                                    <div class="rating-stars d-inline">
+                                        {% for i in range(5) %}
+                                            <i class="fas fa-star {{ 'text-warning' if i < dream.average_rating else 'text-muted' }} small"></i>
+                                        {% endfor %}
+                                    </div>
+                                    {{ dream.average_rating }}/5 ({{ dream.total_ratings }} review{{ 's' if dream.total_ratings != 1 else '' }})
+                                {% else %}
+                                    <span class="text-muted">No ratings yet</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Category:</span>
+                            <span class="text-capitalize">{{ dream.category }}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Created:</span>
+                            <span>{{ dream.created_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Dream ID:</span>
+                            <span class="text-muted">#{{ dream.id }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Author Info -->
+                    <div class="author-card">
+                        <h5>Dream Weaver</h5>
+                        <div class="author-info">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="https://ui-avatars.com/api/?name={{ dream.author.username }}&background=random" 
+                                     alt="{{ dream.author.username }}" class="author-avatar-large me-3">
+                                <div>
+                                    <h6 class="mb-1">{{ dream.author.username }}</h6>
+                                    <small class="text-muted">
+                                        ⭐ {{ dream.author.get_average_rating() }} average rating
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="author-stats">
+                                <div class="stat-item">
+                                    <strong>{{ dream.author.dreams|length }}</strong>
+                                    <small>Dreams Shared</small>
+                                </div>
+                                <div class="stat-item">
+                                    <strong>{{ dream.author.get_total_sales() }}</strong>
+                                    <small>Dreams Sold</small>
+                                </div>
+                            </div>
+                            <div class="d-grid mt-3">
+                                <a href="{{ url_for('profile.view_profile', username=dream.author.username) }}" 
+                                   class="btn btn-outline-dream btn-sm">
+                                    <i class="fas fa-user"></i> View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

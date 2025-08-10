@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-content animate__animated animate__fadeInLeft">
+                    <h1 class="hero-title">
+                        Welcome to the
+                        <span class="text-gradient">Neural Dreams</span>
+                        Marketplace
+                    </h1>
+                    <p class="hero-subtitle">
+                        Where surreal visions become valuable treasures. Buy, sell, and explore the infinite realms of imagination.
+                    </p>
+                    <div class="hero-buttons">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('marketplace.index') }}" class="btn btn-dream btn-lg me-3">
+                                <i class="fas fa-store"></i> Explore Dreams
+                            </a>
+                            <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-outline-dream btn-lg">
+                                <i class="fas fa-plus-circle"></i> Share Your Dream
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('auth.signup') }}" class="btn btn-dream btn-lg me-3">
+                                <i class="fas fa-rocket"></i> Enter the Realm
+                            </a>
+                            <a href="{{ url_for('marketplace.index') }}" class="btn btn-outline-dream btn-lg">
+                                <i class="fas fa-eye"></i> Browse Dreams
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-visual animate__animated animate__fadeInRight">
+                    <div class="dream-orb">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dream of the Week -->
+{% if dream_of_week %}
+<section class="dream-of-week py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <h2 class="text-gradient">
+                <i class="fas fa-crown"></i>
+                Dream of the Week
+            </h2>
+            <p>The most ethereal vision that captivated our dream community</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="featured-dream-card animate__animated animate__fadeInUp">
+                    {% if dream_of_week.image_filename %}
+                        <div class="featured-dream-image">
+                            <img src="{{ url_for('static', filename='uploads/' + dream_of_week.image_filename) }}" 
+                                 alt="{{ dream_of_week.title }}" class="img-fluid">
+                        </div>
+                    {% endif %}
+                    <div class="featured-dream-content">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="dream-category">
+                                {% if dream_of_week.category == 'surreal' %}🌀{% elif dream_of_week.category == 'funny' %}😄
+                                {% elif dream_of_week.category == 'scary' %}👻{% elif dream_of_week.category == 'romantic' %}💕
+                                {% elif dream_of_week.category == 'bizarre' %}🎭{% else %}💭{% endif %}
+                                {{ dream_of_week.category.title() }}
+                            </span>
+                            <div class="dream-rating">
+                                {% for i in range(5) %}
+                                    <i class="fas fa-star {{ 'text-warning' if i < dream_of_week.average_rating else 'text-muted' }}"></i>
+                                {% endfor %}
+                                <span class="ms-2">{{ dream_of_week.average_rating }}/5</span>
+                            </div>
+                        </div>
+                        <h3 class="featured-dream-title">{{ dream_of_week.title }}</h3>
+                        <p class="featured-dream-description">{{ dream_of_week.description[:200] }}{% if dream_of_week.description|length > 200 %}...{% endif %}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="dream-price">
+                                <span class="price-value">✨ {{ dream_of_week.price }} points</span>
+                            </div>
+                            <a href="{{ url_for('marketplace.dream_detail', id=dream_of_week.id) }}" 
+                               class="btn btn-dream">
+                                <i class="fas fa-eye"></i> Experience Dream
+                            </a>
+                        </div>
+                        <div class="dream-author mt-3">
+                            <small class="text-muted">
+                                Dreamed by 
+                                <a href="{{ url_for('profile.view_profile', username=dream_of_week.author.username) }}" 
+                                   class="text-gradient">{{ dream_of_week.author.username }}</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Dreams -->
+<section class="recent-dreams py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <h2 class="text-gradient">
+                <i class="fas fa-sparkles"></i>
+                Latest Dream Visions
+            </h2>
+            <p>Fresh from the subconscious minds of our dream community</p>
+        </div>
+        
+        <div class="row">
+            {% for dream in recent_dreams %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="dream-card animate__animated animate__fadeInUp" style="animation-delay: {{ loop.index * 0.1 }}s">
+                    {% if dream.image_filename %}
+                        <div class="dream-card-image">
+                            <img src="{{ url_for('static', filename='uploads/' + dream.image_filename) }}" 
+                                 alt="{{ dream.title }}" class="img-fluid">
+                        </div>
+                    {% endif %}
+                    <div class="dream-card-content">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="dream-category">
+                                {% if dream.category == 'surreal' %}🌀{% elif dream.category == 'funny' %}😄
+                                {% elif dream.category == 'scary' %}👻{% elif dream.category == 'romantic' %}💕
+                                {% elif dream.category == 'bizarre' %}🎭{% else %}💭{% endif %}
+                                {{ dream.category.title() }}
+                            </span>
+                            {% if dream.average_rating > 0 %}
+                            <div class="dream-rating">
+                                <i class="fas fa-star text-warning"></i>
+                                <span>{{ dream.average_rating }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <h5 class="dream-card-title">{{ dream.title }}</h5>
+                        <p class="dream-card-description">{{ dream.description[:100] }}{% if dream.description|length > 100 %}...{% endif %}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="dream-price">
+                                <span class="price-value">✨ {{ dream.price }}</span>
+                            </div>
+                            <a href="{{ url_for('marketplace.dream_detail', id=dream.id) }}" 
+                               class="btn btn-sm btn-outline-dream">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('marketplace.index') }}" class="btn btn-dream btn-lg">
+                <i class="fas fa-compass"></i> Explore All Dreams
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Top Sellers -->
+{% if top_sellers %}
+<section class="top-sellers py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <h2 class="text-gradient">
+                <i class="fas fa-users"></i>
+                Renowned Dream Weavers
+            </h2>
+            <p>The most celebrated architects of imagination</p>
+        </div>
+        
+        <div class="row">
+            {% for seller in top_sellers[:5] %}
+            <div class="col-lg-2 col-md-4 col-6 mb-4">
+                <div class="seller-card animate__animated animate__fadeInUp" style="animation-delay: {{ loop.index * 0.1 }}s">
+                    <div class="seller-avatar">
+                        <i class="fas fa-user-astronaut"></i>
+                    </div>
+                    <h6 class="seller-name">{{ seller.username }}</h6>
+                    <div class="seller-rating">
+                        <i class="fas fa-star text-warning"></i>
+                        <span>{{ seller.get_average_rating() }}</span>
+                    </div>
+                    <a href="{{ url_for('profile.view_profile', username=seller.username) }}" 
+                       class="btn btn-sm btn-outline-dream mt-2">
+                        View Profile
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('leaderboard') }}" class="btn btn-outline-dream">
+                <i class="fas fa-trophy"></i> View Full Leaderboard
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <div class="cta-content animate__animated animate__fadeInUp">
+                    <h2 class="text-gradient mb-3">Ready to Share Your Dreams?</h2>
+                    <p class="lead mb-4">
+                        Join thousands of dream weavers in the most surreal marketplace on the internet. 
+                        Your imagination is the only limit!
+                    </p>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('auth.signup') }}" class="btn btn-dream btn-lg">
+                            <i class="fas fa-rocket"></i> Start Your Journey
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-dream btn-lg">
+                            <i class="fas fa-plus-circle"></i> Share Your First Dream
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}{% if edit_mode %}Edit Dream{% else %}Share Your Dream{% endif %} - Neural Dreams Inc.{% endblock %}
+
+{% block content %}
+<div class="post-dream-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="post-dream-card animate__animated animate__fadeInUp">
+                    <div class="post-dream-header text-center mb-4">
+                        <div class="post-dream-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h1 class="text-gradient">
+                            {% if edit_mode %}
+                                <i class="fas fa-edit"></i> Edit Your Dream
+                            {% else %}
+                                <i class="fas fa-plus-circle"></i> Share Your Dream
+                            {% endif %}
+                        </h1>
+                        <p class="text-muted">
+                            {% if edit_mode %}
+                                Update your dream vision and make it even more extraordinary
+                            {% else %}
+                                Transform your imagination into a valuable dream that others can experience
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data" class="post-dream-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Dream Title -->
+                        <div class="form-floating mb-4">
+                            {{ form.title(class="form-control dream-input", placeholder="Enter your dream title...") }}
+                            {{ form.title.label(class="form-label") }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.title.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Dream Description -->
+                        <div class="mb-4">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control dream-input", rows="8", placeholder="Describe your dream in vivid detail. What did you see, feel, or experience? Paint a picture with your words...") }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-lightbulb"></i>
+                                Tip: The more detailed and imaginative your description, the more valuable your dream becomes!
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Dream Category -->
+                            <div class="col-md-6 mb-4">
+                                {{ form.category.label(class="form-label") }}
+                                {{ form.category(class="form-select dream-input") }}
+                                {% if form.category.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.category.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <small>Choose the category that best represents your dream's essence</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Dream Price -->
+                            <div class="col-md-6 mb-4">
+                                <div class="form-floating">
+                                    {{ form.price(class="form-control dream-input", placeholder="0") }}
+                                    {{ form.price.label(class="form-label") }}
+                                </div>
+                                {% if form.price.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.price.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <small>Set a fair price in dream points (1-10,000)</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dream Image -->
+                        <div class="mb-4">
+                            {{ form.image.label(class="form-label") }}
+                            {{ form.image(class="form-control dream-input") }}
+                            {% if form.image.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.image.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-camera"></i>
+                                Upload an image that captures the essence of your dream (optional)
+                            </div>
+                            
+                            {% if edit_mode and dream.image_filename %}
+                                <div class="current-image mt-3">
+                                    <p class="text-muted">Current image:</p>
+                                    <img src="{{ url_for('static', filename='uploads/' + dream.image_filename) }}" 
+                                         alt="{{ dream.title }}" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Dream Preview Card -->
+                        <div class="dream-preview-card mb-4">
+                            <h5 class="text-gradient">
+                                <i class="fas fa-eye"></i>
+                                Dream Preview
+                            </h5>
+                            <p class="text-muted">This is how your dream will appear in the marketplace:</p>
+                            <div class="preview-dream-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="dream-category" id="preview-category">
+                                        💭 Select Category
+                                    </span>
+                                    <div class="dream-rating">
+                                        <i class="fas fa-star text-muted"></i>
+                                        <span class="text-muted">New</span>
+                                    </div>
+                                </div>
+                                <h5 class="dream-card-title" id="preview-title">Your Dream Title</h5>
+                                <p class="dream-card-description" id="preview-description">Your dream description will appear here...</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="dream-price">
+                                        <span class="price-value" id="preview-price">✨ 0 points</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        by {{ current_user.username }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                                <a href="{% if edit_mode %}{{ url_for('marketplace.dream_detail', id=dream.id) }}{% else %}{{ url_for('marketplace.index') }}{% endif %}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancel
+                                </a>
+                                {{ form.submit(class="btn btn-dream btn-lg") }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Sidebar Tips -->
+            <div class="col-lg-4">
+                <div class="tips-sidebar animate__animated animate__fadeInRight">
+                    <div class="tips-card">
+                        <h5 class="text-gradient">
+                            <i class="fas fa-lightbulb"></i>
+                            Dream Sharing Tips
+                        </h5>
+                        
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-pen-fancy"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h6>Be Descriptive</h6>
+                                <p>Use vivid imagery and sensory details to make your dream come alive.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h6>Choose the Right Category</h6>
+                                <p>Proper categorization helps dreamers find exactly what they're looking for.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h6>Price Fairly</h6>
+                                <p>Consider the uniqueness and detail of your dream when setting the price.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h6>Add Visual Appeal</h6>
+                                <p>A compelling image can significantly increase interest in your dream.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pricing-guide mt-4">
+                        <h5 class="text-gradient">
+                            <i class="fas fa-chart-line"></i>
+                            Pricing Guide
+                        </h5>
+                        <div class="price-tier">
+                            <strong>1-50 points</strong>
+                            <p>Simple, short dreams</p>
+                        </div>
+                        <div class="price-tier">
+                            <strong>51-200 points</strong>
+                            <p>Detailed, engaging dreams</p>
+                        </div>
+                        <div class="price-tier">
+                            <strong>201-500 points</strong>
+                            <p>Complex, highly creative dreams</p>
+                        </div>
+                        <div class="price-tier">
+                            <strong>500+ points</strong>
+                            <p>Masterpiece dreams with exceptional detail</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Real-time preview updates
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('title');
+    const descriptionInput = document.getElementById('description');
+    const categoryInput = document.getElementById('category');
+    const priceInput = document.getElementById('price');
+    
+    const previewTitle = document.getElementById('preview-title');
+    const previewDescription = document.getElementById('preview-description');
+    const previewCategory = document.getElementById('preview-category');
+    const previewPrice = document.getElementById('preview-price');
+    
+    const categoryIcons = {
+        'surreal': '🌀',
+        'funny': '😄',
+        'scary': '👻',
+        'romantic': '💕',
+        'bizarre': '🎭'
+    };
+    
+    function updatePreview() {
+        // Update title
+        previewTitle.textContent = titleInput.value || 'Your Dream Title';
+        
+        // Update description
+        const desc = descriptionInput.value || 'Your dream description will appear here...';
+        previewDescription.textContent = desc.length > 120 ? desc.substring(0, 120) + '...' : desc;
+        
+        // Update category
+        const category = categoryInput.value;
+        if (category) {
+            const icon = categoryIcons[category] || '💭';
+            previewCategory.textContent = icon + ' ' + category.charAt(0).toUpperCase() + category.slice(1);
+        } else {
+            previewCategory.textContent = '💭 Select Category';
+        }
+        
+        // Update price
+        const price = priceInput.value || '0';
+        previewPrice.textContent = '✨ ' + price + ' points';
+    }
+    
+    // Add event listeners
+    titleInput.addEventListener('input', updatePreview);
+    descriptionInput.addEventListener('input', updatePreview);
+    categoryInput.addEventListener('change', updatePreview);
+    priceInput.addEventListener('input', updatePreview);
+    
+    // Initial update
+    updatePreview();
+});
+</script>
+{% endblock %}

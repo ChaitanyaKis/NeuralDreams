@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Dream Marketplace - Neural Dreams Inc.{% endblock %}
+
+{% block content %}
+<div class="marketplace-container">
+    <div class="container-fluid">
+        <div class="marketplace-header py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h1 class="text-gradient mb-2">
+                            <i class="fas fa-store"></i>
+                            Dream Marketplace
+                        </h1>
+                        <p class="text-muted mb-0">Discover and acquire the most extraordinary visions</p>
+                    </div>
+                    <div class="col-lg-6 text-lg-end">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-dream">
+                                <i class="fas fa-plus-circle"></i> Share Your Dream
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search and Filter Section -->
+        <div class="search-section py-4 bg-light-dream">
+            <div class="container">
+                <form method="GET" class="search-form">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Search Dreams</label>
+                            {{ form.query(class="form-control dream-input", placeholder="Enter keywords...") }}
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label class="form-label">Category</label>
+                            {{ form.category(class="form-select dream-input") }}
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label class="form-label">Min Price</label>
+                            {{ form.min_price(class="form-control dream-input", placeholder="0") }}
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label class="form-label">Max Price</label>
+                            {{ form.max_price(class="form-control dream-input", placeholder="∞") }}
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label class="form-label">Sort By</label>
+                            {{ form.sort_by(class="form-select dream-input") }}
+                        </div>
+                        <div class="col-lg-1 col-md-6">
+                            {{ form.submit(class="btn btn-outline-dream w-100") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Dreams Grid -->
+        <div class="dreams-section py-5">
+            <div class="container">
+                {% if dreams.items %}
+                    <div class="results-info mb-4">
+                        <p class="text-muted">
+                            Showing {{ dreams.per_page * (dreams.page - 1) + 1 }} - 
+                            {{ dreams.per_page * dreams.page if dreams.page < dreams.pages else dreams.total }} 
+                            of {{ dreams.total }} dreams
+                        </p>
+                    </div>
+                    
+                    <div class="row">
+                        {% for dream in dreams.items %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="dream-card animate__animated animate__fadeInUp" style="animation-delay: {{ loop.index * 0.05 }}s">
+                                {% if dream.image_filename %}
+                                    <div class="dream-card-image">
+                                        <img src="{{ url_for('static', filename='uploads/' + dream.image_filename) }}" 
+                                             alt="{{ dream.title }}" class="img-fluid">
+                                        <div class="dream-card-overlay">
+                                            <a href="{{ url_for('marketplace.dream_detail', id=dream.id) }}" 
+                                               class="btn btn-dream btn-sm">
+                                                <i class="fas fa-eye"></i> Experience
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="dream-card-content">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="dream-category">
+                                            {% if dream.category == 'surreal' %}🌀{% elif dream.category == 'funny' %}😄
+                                            {% elif dream.category == 'scary' %}👻{% elif dream.category == 'romantic' %}💕
+                                            {% elif dream.category == 'bizarre' %}🎭{% else %}💭{% endif %}
+                                            {{ dream.category.title() }}
+                                        </span>
+                                        {% if dream.average_rating > 0 %}
+                                        <div class="dream-rating">
+                                            {% for i in range(5) %}
+                                                <i class="fas fa-star {{ 'text-warning' if i < dream.average_rating else 'text-muted' }} small"></i>
+                                            {% endfor %}
+                                            <span class="ms-1 small">{{ dream.average_rating }}</span>
+                                        </div>
+                                        {% else %}
+                                        <small class="text-muted">No ratings yet</small>
+                                        {% endif %}
+                                    </div>
+                                    <h5 class="dream-card-title">
+                                        <a href="{{ url_for('marketplace.dream_detail', id=dream.id) }}" 
+                                           class="text-decoration-none">{{ dream.title }}</a>
+                                    </h5>
+                                    <p class="dream-card-description">{{ dream.description[:120] }}{% if dream.description|length > 120 %}...{% endif %}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="dream-price">
+                                            <span class="price-value">✨ {{ dream.price }} points</span>
+                                        </div>
+                                        <small class="text-muted">
+                                            by <a href="{{ url_for('profile.view_profile', username=dream.author.username) }}" 
+                                                  class="text-gradient">{{ dream.author.username }}</a>
+                                        </small>
+                                    </div>
+                                    <div class="dream-card-actions mt-3">
+                                        <a href="{{ url_for('marketplace.dream_detail', id=dream.id) }}" 
+                                           class="btn btn-outline-dream btn-sm">
+                                            <i class="fas fa-info-circle"></i> Details
+                                        </a>
+                                        {% if current_user.is_authenticated and current_user.id != dream.author_id %}
+                                            {% if not dream.is_purchased_by(current_user) %}
+                                                {% if current_user.points >= dream.price %}
+                                                    <form method="POST" action="{{ url_for('marketplace.buy_dream', id=dream.id) }}" 
+                                                          class="d-inline" onsubmit="return confirm('Purchase this dream for {{ dream.price }} points?')">
+                                                        <button type="submit" class="btn btn-dream btn-sm">
+                                                            <i class="fas fa-shopping-cart"></i> Buy
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <button class="btn btn-secondary btn-sm" disabled>
+                                                        <i class="fas fa-coins"></i> Insufficient Points
+                                                    </button>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check"></i> Owned
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if dreams.pages > 1 %}
+                    <nav aria-label="Dreams pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if dreams.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('marketplace.index', page=dreams.prev_num, **request.args) }}">
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for page_num in dreams.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != dreams.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('marketplace.index', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if dreams.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('marketplace.index', page=dreams.next_num, **request.args) }}">
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                {% else %}
+                    <div class="empty-state text-center py-5">
+                        <div class="empty-icon mb-3">
+                            <i class="fas fa-search text-muted"></i>
+                        </div>
+                        <h3 class="text-muted">No Dreams Found</h3>
+                        <p class="text-muted">Try adjusting your search criteria or explore different categories.</p>
+                        <a href="{{ url_for('marketplace.index') }}" class="btn btn-outline-dream">
+                            <i class="fas fa-refresh"></i> Clear Filters
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

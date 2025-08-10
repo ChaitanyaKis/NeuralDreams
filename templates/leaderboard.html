@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Dream Weaver Leaderboard - Neural Dreams Inc.{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <div class="container">
+        <!-- Leaderboard Header -->
+        <div class="leaderboard-header text-center py-5 animate__animated animate__fadeInDown">
+            <div class="header-icon">
+                <i class="fas fa-trophy text-gradient"></i>
+            </div>
+            <h1 class="text-gradient mb-3">Dream Weaver Leaderboard</h1>
+            <p class="lead text-muted">
+                Celebrating the most renowned architects of imagination in our surreal marketplace
+            </p>
+        </div>
+
+        <!-- Top 3 Podium -->
+        {% if top_sellers[:3] %}
+        <div class="podium-section mb-5 animate__animated animate__fadeInUp">
+            <div class="row justify-content-center">
+                {% for seller, avg_rating, dream_count in top_sellers[:3] %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="podium-card position-{{ loop.index }} animate__animated animate__zoomIn" style="animation-delay: {{ loop.index * 0.2 }}s">
+                        <div class="podium-rank">
+                            {% if loop.index == 1 %}
+                                <i class="fas fa-crown text-warning"></i>
+                                <span class="rank-number">#1</span>
+                            {% elif loop.index == 2 %}
+                                <i class="fas fa-medal text-secondary"></i>
+                                <span class="rank-number">#2</span>
+                            {% else %}
+                                <i class="fas fa-award text-warning"></i>
+                                <span class="rank-number">#3</span>
+                            {% endif %}
+                        </div>
+                        <div class="podium-avatar">
+                            <img src="https://ui-avatars.com/api/?name={{ seller.username }}&size=120&background=random" 
+                                 alt="{{ seller.username }}" class="img-fluid rounded-circle">
+                        </div>
+                        <div class="podium-info">
+                            <h4 class="podium-name">{{ seller.username }}</h4>
+                            <div class="podium-rating">
+                                {% for i in range(5) %}
+                                    <i class="fas fa-star {{ 'text-warning' if i < avg_rating else 'text-muted' }}"></i>
+                                {% endfor %}
+                                <span class="rating-value">{{ "%.1f"|format(avg_rating) }}</span>
+                            </div>
+                            <div class="podium-stats">
+                                <div class="stat-item">
+                                    <strong>{{ dream_count }}</strong>
+                                    <small>Dreams</small>
+                                </div>
+                                <div class="stat-item">
+                                    <strong>{{ seller.points }}</strong>
+                                    <small>Points</small>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('profile.view_profile', username=seller.username) }}" 
+                               class="btn btn-dream btn-sm mt-3">
+                                <i class="fas fa-user"></i> View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Full Leaderboard Table -->
+        <div class="leaderboard-table animate__animated animate__fadeInUp">
+            <div class="section-header text-center mb-4">
+                <h2 class="text-gradient">
+                    <i class="fas fa-list-ol"></i>
+                    Complete Rankings
+                </h2>
+                <p class="text-muted">All dream weavers ranked by their average ratings and community impact</p>
+            </div>
+
+            {% if top_sellers %}
+            <div class="table-responsive">
+                <table class="table leaderboard-table-custom">
+                    <thead>
+                        <tr>
+                            <th scope="col">Rank</th>
+                            <th scope="col">Dream Weaver</th>
+                            <th scope="col">Rating</th>
+                            <th scope="col">Dreams Shared</th>
+                            <th scope="col">Points</th>
+                            <th scope="col">Joined</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for seller, avg_rating, dream_count in top_sellers %}
+                        <tr class="leaderboard-row animate__animated animate__fadeInLeft" style="animation-delay: {{ loop.index * 0.05 }}s">
+                            <td>
+                                <div class="rank-cell">
+                                    {% if loop.index <= 3 %}
+                                        <span class="rank-badge rank-{{ loop.index }}">
+                                            {% if loop.index == 1 %}
+                                                <i class="fas fa-crown"></i>
+                                            {% elif loop.index == 2 %}
+                                                <i class="fas fa-medal"></i>
+                                            {% else %}
+                                                <i class="fas fa-award"></i>
+                                            {% endif %}
+                                            {{ loop.index }}
+                                        </span>
+                                    {% else %}
+                                        <span class="rank-number">{{ loop.index }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-cell">
+                                    <img src="https://ui-avatars.com/api/?name={{ seller.username }}&size=40&background=random" 
+                                         alt="{{ seller.username }}" class="user-avatar me-2">
+                                    <div class="user-info">
+                                        <strong>{{ seller.username }}</strong>
+                                        {% if seller.bio %}
+                                            <small class="text-muted d-block">{{ seller.bio[:50] }}{% if seller.bio|length > 50 %}...{% endif %}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-cell">
+                                    <div class="rating-stars">
+                                        {% for i in range(5) %}
+                                            <i class="fas fa-star {{ 'text-warning' if i < avg_rating else 'text-muted' }} small"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="rating-value">{{ "%.1f"|format(avg_rating) }}/5</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="stat-badge">
+                                    <i class="fas fa-brain"></i>
+                                    {{ dream_count }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="points-badge">
+                                    <i class="fas fa-coins"></i>
+                                    ✨ {{ seller.points }}
+                                </span>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ seller.created_at.strftime('%b %Y') }}</small>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('profile.view_profile', username=seller.username) }}" 
+                                   class="btn btn-outline-dream btn-sm">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <div class="empty-icon mb-3">
+                    <i class="fas fa-users text-muted"></i>
+                </div>
+                <h3 class="text-muted">No Dream Weavers Yet</h3>
+                <p class="text-muted">Be the first to share your dreams and claim the top spot!</p>
+                <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-dream">
+                    <i class="fas fa-plus-circle"></i> Share Your First Dream
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Leaderboard Stats -->
+        {% if top_sellers %}
+        <div class="leaderboard-stats mt-5 animate__animated animate__fadeInUp">
+            <div class="row">
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value">{{ top_sellers|length }}</div>
+                        <div class="stat-label">Dream Weavers</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="stat-value">{{ top_sellers|sum(attribute='1') }}</div>
+                        <div class="stat-label">Total Dreams</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-value">{{ "%.1f"|format(top_sellers|map(attribute='1')|list|sum / top_sellers|length) if top_sellers else 0 }}</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="stat-value">{% if top_sellers %}{{ top_sellers[0][1]|int }}{% else %}0{% endif %}</div>
+                        <div class="stat-label">Top Dreams</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Call to Action -->
+        <div class="cta-section text-center py-5 animate__animated animate__fadeInUp">
+            <h3 class="text-gradient mb-3">Ready to Join the Leaderboard?</h3>
+            <p class="text-muted mb-4">
+                Share your most extraordinary dreams and climb the ranks of imagination!
+            </p>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-dream btn-lg me-3">
+                    <i class="fas fa-plus-circle"></i> Share Your Dream
+                </a>
+                <a href="{{ url_for('marketplace.index') }}" class="btn btn-outline-dream btn-lg">
+                    <i class="fas fa-store"></i> Explore Dreams
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.signup') }}" class="btn btn-dream btn-lg me-3">
+                    <i class="fas fa-rocket"></i> Join the Realm
+                </a>
+                <a href="{{ url_for('marketplace.index') }}" class="btn btn-outline-dream btn-lg">
+                    <i class="fas fa-eye"></i> Browse Dreams
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }} - Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header animate__animated animate__fadeInUp">
+            <div class="row align-items-center">
+                <div class="col-lg-3 text-center">
+                    <div class="profile-avatar">
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&size=150&background=random" 
+                             alt="{{ user.username }}" class="img-fluid rounded-circle">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h1 class="profile-name text-gradient">{{ user.username }}</h1>
+                    {% if user.bio %}
+                        <p class="profile-bio">{{ user.bio }}</p>
+                    {% endif %}
+                    <div class="profile-meta">
+                        <span class="badge bg-dream me-2">
+                            <i class="fas fa-calendar"></i>
+                            Joined {{ user.created_at.strftime('%B %Y') }}
+                        </span>
+                        <span class="badge bg-success">
+                            <i class="fas fa-coins"></i>
+                            ✨ {{ user.points }} points
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    {% if is_own_profile %}
+                        <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-outline-dream">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Stats -->
+        <div class="profile-stats animate__animated animate__fadeInUp">
+            <div class="row">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="stat-value">{{ stats.dreams_posted }}</div>
+                        <div class="stat-label">Dreams Shared</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="stat-value">{{ stats.dreams_purchased }}</div>
+                        <div class="stat-label">Dreams Owned</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-value">{{ stats.average_rating_received }}</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-value">{{ stats.total_earnings }}</div>
+                        <div class="stat-label">Points Earned</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="row">
+            <!-- Dreams Section -->
+            <div class="col-lg-8">
+                <div class="profile-section animate__animated animate__fadeInLeft">
+                    <div class="section-header">
+                        <h3>
+                            {% if is_own_profile %}Your Dreams{% else %}{{ user.username }}'s Dreams{% endif %}
+                            <span class="badge bg-secondary">{{ dreams|length }}</span>
+                        </h3>
+                        {% if is_own_profile %}
+                            <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-dream btn-sm">
+                                <i class="fas fa-plus"></i> Share New Dream
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    {% if dreams %}
+                        <div class="row">
+                            {% for dream in dreams %}
+                            <div class="col-md-6 mb-4">
+                                <div class="dream-card">
+                                    {% if dream.image_filename %}
+                                        <div class="dream-card-image">
+                                            <img src="{{ url_for('static', filename='uploads/' + dream.image_filename) }}" 
+                                                 alt="{{ dream.title }}" class="img-fluid">
+                                        </div>
+                                    {% endif %}
+                                    <div class="dream-card-content">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="dream-category">
+                                                {% if dream.category == 'surreal' %}🌀{% elif dream.category == 'funny' %}😄
+                                                {% elif dream.category == 'scary' %}👻{% elif dream.category == 'romantic' %}💕
+                                                {% elif dream.category == 'bizarre' %}🎭{% else %}💭{% endif %}
+                                                {{ dream.category.title() }}
+                                            </span>
+                                            {% if dream.average_rating > 0 %}
+                                            <div class="dream-rating">
+                                                <i class="fas fa-star text-warning"></i>
+                                                <span>{{ dream.average_rating }}</span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <h5 class="dream-card-title">
+                                            <a href="{{ url_for('marketplace.dream_detail', id=dream.id) }}">{{ dream.title }}</a>
+                                        </h5>
+                                        <p class="dream-card-description">{{ dream.description[:100] }}{% if dream.description|length > 100 %}...{% endif %}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="dream-price">
+                                                <span class="price-value">✨ {{ dream.price }}</span>
+                                            </div>
+                                            <small class="text-muted">{{ dream.created_at.strftime('%b %d') }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state text-center py-4">
+                            <i class="fas fa-brain text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h5 class="text-muted">No Dreams Yet</h5>
+                            <p class="text-muted">
+                                {% if is_own_profile %}
+                                    Start sharing your imagination with the world!
+                                {% else %}
+                                    {{ user.username }} hasn't shared any dreams yet.
+                                {% endif %}
+                            </p>
+                            {% if is_own_profile %}
+                                <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-dream">
+                                    <i class="fas fa-plus"></i> Share Your First Dream
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Purchased Dreams (Only for own profile) -->
+                {% if is_own_profile and purchased_dreams %}
+                <div class="profile-section mt-5">
+                    <div class="section-header">
+                        <h3>
+                            Your Dream Collection
+                            <span class="badge bg-secondary">{{ purchased_dreams|length }}</span>
+                        </h3>
+                        <a href="{{ url_for('profile.purchases') }}" class="btn btn-outline-dream btn-sm">
+                            <i class="fas fa-list"></i> View All
+                        </a>
+                    </div>
+                    
+                    <div class="row">
+                        {% for dream, purchase in purchased_dreams[:4] %}
+                        <div class="col-md-6 mb-4">
+                            <div class="dream-card">
+                                {% if dream.image_filename %}
+                                    <div class="dream-card-image">
+                                        <img src="{{ url_for('static', filename='uploads/' + dream.image_filename) }}" 
+                                             alt="{{ dream.title }}" class="img-fluid">
+                                    </div>
+                                {% endif %}
+                                <div class="dream-card-content">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="dream-category">
+                                            {% if dream.category == 'surreal' %}🌀{% elif dream.category == 'funny' %}😄
+                                            {% elif dream.category == 'scary' %}👻{% elif dream.category == 'romantic' %}💕
+                                            {% elif dream.category == 'bizarre' %}🎭{% else %}💭{% endif %}
+                                            {{ dream.category.title() }}
+                                        </span>
+                                        <span class="badge bg-success">Owned</span>
+                                    </div>
+                                    <h5 class="dream-card-title">
+                                        <a href="{{ url_for('marketplace.dream_detail', id=dream.id) }}">{{ dream.title }}</a>
+                                    </h5>
+                                    <p class="dream-card-description">{{ dream.description[:100] }}{% if dream.description|length > 100 %}...{% endif %}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            by {{ dream.author.username }}
+                                        </small>
+                                        <small class="text-muted">
+                                            Purchased {{ purchase.purchase_date.strftime('%b %d') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="profile-sidebar animate__animated animate__fadeInRight">
+                    <!-- Recent Ratings -->
+                    {% if recent_ratings %}
+                    <div class="sidebar-section">
+                        <h5>Recent Reviews</h5>
+                        {% for rating, dream in recent_ratings %}
+                        <div class="rating-item">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="mb-0">
+                                    <a href="{{ url_for('marketplace.dream_detail', id=dream.id) }}" 
+                                       class="text-decoration-none">{{ dream.title[:30] }}{% if dream.title|length > 30 %}...{% endif %}</a>
+                                </h6>
+                                <div class="rating-stars">
+                                    {% for i in range(5) %}
+                                        <i class="fas fa-star {{ 'text-warning' if i < rating.rating else 'text-muted' }} small"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if rating.review %}
+                                <p class="small text-muted mb-1">{{ rating.review[:80] }}{% if rating.review|length > 80 %}...{% endif %}</p>
+                            {% endif %}
+                            <small class="text-muted">
+                                by {{ rating.rater.username }} - {{ rating.created_at.strftime('%b %d') }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if is_own_profile %}
+                            <a href="{{ url_for('profile.ratings_received') }}" class="btn btn-outline-dream btn-sm w-100 mt-2">
+                                <i class="fas fa-star"></i> View All Reviews
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Quick Actions (Own Profile) -->
+                    {% if is_own_profile %}
+                    <div class="sidebar-section">
+                        <h5>Quick Actions</h5>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('marketplace.post_dream') }}" class="btn btn-dream">
+                                <i class="fas fa-plus-circle"></i> Share New Dream
+                            </a>
+                            <a href="{{ url_for('profile.purchases') }}" class="btn btn-outline-dream">
+                                <i class="fas fa-shopping-bag"></i> My Purchases
+                            </a>
+                            <a href="{{ url_for('profile.sales') }}" class="btn btn-outline-dream">
+                                <i class="fas fa-dollar-sign"></i> My Sales
+                            </a>
+                            <a href="{{ url_for('profile.ratings_given') }}" class="btn btn-outline-dream">
+                                <i class="fas fa-comments"></i> My Reviews
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dream Categories -->
+                    <div class="sidebar-section">
+                        <h5>Explore Categories</h5>
+                        <div class="category-links">
+                            <a href="{{ url_for('marketplace.index', category='surreal') }}" class="category-link">
+                                🌀 Surreal Dreams
+                            </a>
+                            <a href="{{ url_for('marketplace.index', category='funny') }}" class="category-link">
+                                😄 Funny Dreams
+                            </a>
+                            <a href="{{ url_for('marketplace.index', category='scary') }}" class="category-link">
+                                👻 Scary Dreams
+                            </a>
+                            <a href="{{ url_for('marketplace.index', category='romantic') }}" class="category-link">
+                                💕 Romantic Dreams
+                            </a>
+                            <a href="{{ url_for('marketplace.index', category='bizarre') }}" class="category-link">
+                                🎭 Bizarre Dreams
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -163,6 +163,8 @@ def get_user_stats(user):
     }
     
     # Calculate earnings
+    from app import db
+    from sqlalchemy import func
     earnings = db.session.query(func.sum(Purchase.price_paid)).join(Dream).filter(Dream.author_id == user.id).scalar()
     stats['total_earnings'] = earnings or 0
     

@@ -85,6 +85,11 @@ def leaderboard():
 # Create upload directory if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+@app.context_processor
+def inject_dream_utils():
+    from dream_utils import get_category_icon
+    return dict(get_category_icon=get_category_icon)
+
 with app.app_context():
     import models
     db.create_all()

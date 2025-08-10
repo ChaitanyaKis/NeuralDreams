@@ -67,11 +67,32 @@ def edit_profile():
 def purchases():
     page = request.args.get('page', 1, type=int)
     
-    from sqlalchemy import select
-    purchases_query = select(Purchase, Dream).join(Dream).filter(
+    # Get purchases using traditional SQLAlchemy approach
+    purchases_data = db.session.query(Purchase, Dream).join(Dream).filter(
         Purchase.buyer_id == current_user.id
     ).order_by(Purchase.purchase_date.desc())
-    purchases = db.paginate(purchases_query, page=page, per_page=10, error_out=False)
+    
+    # Manual pagination
+    total = purchases_data.count()
+    purchases_list = purchases_data.offset((page - 1) * 10).limit(10).all()
+    
+    class SimplePagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1 if self.has_prev else None
+            self.next_num = page + 1 if self.has_next else None
+            
+        def iter_pages(self):
+            for i in range(1, self.pages + 1):
+                yield i
+    
+    purchases = SimplePagination(purchases_list, page, 10, total)
     
     return render_template('purchases.html', purchases=purchases)
 
@@ -80,11 +101,32 @@ def purchases():
 def sales():
     page = request.args.get('page', 1, type=int)
     
-    from sqlalchemy import select
-    sales_query = select(Purchase, Dream).join(Dream).filter(
+    # Get sales using traditional SQLAlchemy approach
+    sales_data = db.session.query(Purchase, Dream).join(Dream).filter(
         Dream.author_id == current_user.id
     ).order_by(Purchase.purchase_date.desc())
-    sales = db.paginate(sales_query, page=page, per_page=10, error_out=False)
+    
+    # Manual pagination
+    total = sales_data.count()
+    sales_list = sales_data.offset((page - 1) * 10).limit(10).all()
+    
+    class SimplePagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1 if self.has_prev else None
+            self.next_num = page + 1 if self.has_next else None
+            
+        def iter_pages(self):
+            for i in range(1, self.pages + 1):
+                yield i
+    
+    sales = SimplePagination(sales_list, page, 10, total)
     
     return render_template('sales.html', sales=sales)
 

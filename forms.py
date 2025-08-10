@@ -88,6 +88,16 @@ class ProfileForm(FlaskForm):
     ])
     email = StringField('Email', validators=[DataRequired(), Email()])
     bio = TextAreaField('Bio', validators=[Length(max=500)])
+    avatar = FileField('Avatar', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Please upload an image file (jpg, jpeg, png, gif)')
+    ])
+    current_password = PasswordField('Current Password')
+    new_password = PasswordField('New Password', validators=[
+        Length(min=6, message='Password must be at least 6 characters')
+    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        EqualTo('new_password', message='Passwords must match')
+    ])
     submit = SubmitField('Update Profile')
     
     def __init__(self, original_username, original_email, *args, **kwargs):

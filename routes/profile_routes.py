@@ -67,11 +67,11 @@ def edit_profile():
 def purchases():
     page = request.args.get('page', 1, type=int)
     
-    purchases = db.session.query(Purchase, Dream).join(Dream).filter(
+    from sqlalchemy import select
+    purchases_query = select(Purchase, Dream).join(Dream).filter(
         Purchase.buyer_id == current_user.id
-    ).order_by(Purchase.purchase_date.desc()).paginate(
-        page=page, per_page=10, error_out=False
-    )
+    ).order_by(Purchase.purchase_date.desc())
+    purchases = db.paginate(purchases_query, page=page, per_page=10, error_out=False)
     
     return render_template('purchases.html', purchases=purchases)
 
@@ -80,11 +80,11 @@ def purchases():
 def sales():
     page = request.args.get('page', 1, type=int)
     
-    sales = db.session.query(Purchase, Dream).join(Dream).filter(
+    from sqlalchemy import select
+    sales_query = select(Purchase, Dream).join(Dream).filter(
         Dream.author_id == current_user.id
-    ).order_by(Purchase.purchase_date.desc()).paginate(
-        page=page, per_page=10, error_out=False
-    )
+    ).order_by(Purchase.purchase_date.desc())
+    sales = db.paginate(sales_query, page=page, per_page=10, error_out=False)
     
     return render_template('sales.html', sales=sales)
 
@@ -93,11 +93,11 @@ def sales():
 def ratings_given():
     page = request.args.get('page', 1, type=int)
     
-    ratings = db.session.query(Rating, Dream).join(Dream).filter(
+    from sqlalchemy import select
+    ratings_query = select(Rating, Dream).join(Dream).filter(
         Rating.rater_id == current_user.id
-    ).order_by(Rating.created_at.desc()).paginate(
-        page=page, per_page=10, error_out=False
-    )
+    ).order_by(Rating.created_at.desc())
+    ratings = db.paginate(ratings_query, page=page, per_page=10, error_out=False)
     
     return render_template('ratings_given.html', ratings=ratings)
 
@@ -106,10 +106,10 @@ def ratings_given():
 def ratings_received():
     page = request.args.get('page', 1, type=int)
     
-    ratings = db.session.query(Rating, Dream).join(Dream).filter(
+    from sqlalchemy import select
+    ratings_query = select(Rating, Dream).join(Dream).filter(
         Dream.author_id == current_user.id
-    ).order_by(Rating.created_at.desc()).paginate(
-        page=page, per_page=10, error_out=False
-    )
+    ).order_by(Rating.created_at.desc())
+    ratings = db.paginate(ratings_query, page=page, per_page=10, error_out=False)
     
     return render_template('ratings_received.html', ratings=ratings)
